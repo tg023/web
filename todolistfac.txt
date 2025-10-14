@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="todoApp">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do List using Factory</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+</head>
+<body ng-controller="TodoController">
+
+  <h2>To-Do List (Factory Example)</h2>
+
+  <input type="text" ng-model="newTask" placeholder="Enter a task">
+  <button ng-click="addTask()">Add</button>
+
+  <ul>
+    <li ng-repeat="task in tasks">
+      {{task}}
+      <button ng-click="deleteTask($index)">Delete</button>
+    </li>
+  </ul>
+
+  <script>
+    // Define the module
+    var app = angular.module("todoApp", []);
+
+    // Define the factory
+    app.factory("TodoFactory", function() {
+      // Private array (not directly visible to the controller)
+      var tasks = ["Learn AngularJS", "Practice coding"];
+
+      return {
+        // Get all tasks
+        getTasks: function() {
+          return tasks;
+        },
+
+        // Add a new task
+        addTask: function(task) {
+          tasks.push(task);
+        },
+
+        // Delete a task
+        deleteTask: function(index) {
+          tasks.splice(index, 1);
+        }
+      };
+    });
+
+    // Define the controller and inject the factory
+    app.controller("TodoController", function($scope, TodoFactory) {
+      $scope.tasks = TodoFactory.getTasks();
+
+      $scope.addTask = function() {
+        if ($scope.newTask) {
+          TodoFactory.addTask($scope.newTask);
+          $scope.newTask = "";
+        }
+      };
+
+      $scope.deleteTask = function(index) {
+        TodoFactory.deleteTask(index);
+      };
+    });
+  </script>
+
+</body>
+</html>
