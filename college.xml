@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<college>  
+
+  <department dept_id="D001">  
+    <dept_name>Computer Science</dept_name>  
+    <student student_id="S001">  
+      <name>John Doe</name>  
+      <email>john.doe@college.edu</email>  
+      <cgpa>8.5</cgpa>  
+    </student>  
+
+    <student student_id="S002">  
+      <name>Jane Smith</name>  
+      <email>jane.smith@college.edu</email>  
+      <cgpa>9.2</cgpa>  
+    </student>  
+  </department>  
+
+  <department dept_id="D002">  
+    <dept_name>Electrical Engineering</dept_name>  
+    <student student_id="S003">  
+      <name>Sarah Williams</name>  
+      <email>sarah.w@college.edu</email>  
+      <cgpa>8.9</cgpa>  
+    </student>  
+
+    <student student_id="S004">  
+      <name>David Brown</name>  
+      <email>david.b@college.edu</email>  
+      <cgpa>8.1</cgpa>  
+    </student>  
+  </department>  
+
+  <department dept_id="D003">  
+    <dept_name>Mechanical Engineering</dept_name>  
+    <student student_id="S005">  
+      <name>Emily Davis</name>  
+      <email>emily.d@college.edu</email>  
+      <cgpa>9.0</cgpa>  
+    </student>  
+
+    <student student_id="S006">  
+      <name>Robert Miller</name>  
+      <email>robert.m@college.edu</email>  
+      <cgpa>8.4</cgpa>  
+    </student>  
+  </department>  
+
+</college>
