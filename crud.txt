@@ -1,0 +1,201 @@
+const http = require('http');
+const mysql = require('mysql2');
+
+const PORT = 3000;
+
+// MySQL Connection
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'test_db'
+});
+
+// Connect to MySQL
+db.connect((err) => {
+  if (err) {
+    console.error('MySQL connection failed:', err);
+    return;
+  }
+  console.log('Connected to MySQL!');
+
+  // Create table if not exists
+  const createTable = `
+    CREATE TABLE IF NOT EXISTS users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      email VARCHAR(100) NOT NULL
+    )
+  `;
+  db.query(createTable, (err) => {
+    if (err) console.error('Error creating table:', err);
+    else console.log('Table ready!');
+  });
+});
+
+// Create HTTP Server
+const server = http.createServer((req, res) => {
+
+  // Serve HTML
+  if (req.method === 'GET' && req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple CRUD</title>
+  <style>
+    body { font-family: Arial; max-width: 700px; margin: 40px auto; }
+    input, button { padding: 8px; margin: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+    .btn-update { background: #2196F3; color: white; border: none; }
+    .btn-delete { background: #f44336; color: white; border: none; }
+    .btn { cursor: pointer; padding: 5px 10px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h2>Simple User CRUD</h2>
+  <form id="userForm">
+    <input type="hidden" id="userId">
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <button type="submit">Save</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="userTable"><tr><td colspan="4">Loading...</td></tr></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('userForm');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const idInput = document.getElementById('userId');
+    const table = document.getElementById('userTable');
+
+    loadUsers();
+
+    // Load all users
+    function loadUsers() {
+      fetch('/read').then(res => res.json()).then(data => {
+        if (data.length === 0) {
+          table.innerHTML = '<tr><td colspan="4">No users found</td></tr>';
+          return;
+        }
+        table.innerHTML = data.map(u => \`
+          <tr>
+            <td>\${u.id}</td>
+            <td>\${u.name}</td>
+            <td>\${u.email}</td>
+            <td>
+              <button class="btn btn-update" onclick="editUser(\${u.id}, '\${u.name}', '\${u.email}')">Edit</button>
+              <button class="btn btn-delete" onclick="deleteUser(\${u.id})">Delete</button>
+            </td>
+          </tr>
+        \`).join('');
+      });
+    }
+
+    // Save or Update user
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const user = { name: nameInput.value, email: emailInput.value };
+      let url = '/create';
+      if (idInput.value) {
+        user.id = idInput.value;
+        url = '/update';
+      }
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+      }).then(() => {
+        form.reset();
+        idInput.value = '';
+        loadUsers();
+      });
+    });
+
+    // Edit user (load data into form)
+    function editUser(id, name, email) {
+      idInput.value = id;
+      nameInput.value = name;
+      emailInput.value = email;
+    }
+
+    // Delete user
+    function deleteUser(id) {
+      if (!confirm('Delete this user?')) return;
+      fetch('/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      }).then(() => loadUsers());
+    }
+  </script>
+</body>
+</html>
+    `);
+  }
+
+  // CREATE
+  else if (req.method === 'POST' && req.url === '/create') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      const data = JSON.parse(body);
+      db.query('INSERT INTO users (name, email) VALUES (?, ?)', [data.name, data.email], () => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      });
+    });
+  }
+
+  // READ
+  else if (req.method === 'GET' && req.url === '/read') {
+    db.query('SELECT * FROM users', (err, rows) => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(rows || []));
+    });
+  }
+
+  // UPDATE
+  else if (req.method === 'POST' && req.url === '/update') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      const data = JSON.parse(body);
+      db.query('UPDATE users SET name=?, email=? WHERE id=?', [data.name, data.email, data.id], () => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      });
+    });
+  }
+
+  // DELETE
+  else if (req.method === 'POST' && req.url === '/delete') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      const data = JSON.parse(body);
+      db.query('DELETE FROM users WHERE id=?', [data.id], () => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      });
+    });
+  }
+
+  else {
+    res.writeHead(404);
+    res.end('Not Found');
+  }
+});
+
+server.listen(PORT, () => {
+  console.log('🚀 Server running at http://localhost:' + PORT);
+});
