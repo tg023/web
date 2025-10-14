@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Database</title>
+  <style>
+   
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .department {
+      background: #fff;
+      margin: 15px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+
+    .student {
+      margin-left: 15px;
+      padding: 5px 0;
+    }
+
+    .student-name {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .student-detail {
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🎓 College Database</h1>
+  <div id="collegeData"></div>
+
+  <script>
+    // Load XML file
+    fetch('college.xml')
+      .then(response => response.text())
+      .then(data => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data, "text/xml");
+        const departments = xml.getElementsByTagName("department");
+        let html = '';
+
+        for (let i = 0; i < departments.length; i++) {
+          const dept = departments[i];
+          const deptId = dept.getAttribute("dept_id");
+          const deptName = dept.getElementsByTagName("dept_name")[0].textContent;
+
+          html += `<div class="department">
+                     <h2 class="dept-header">${deptName} (ID: ${deptId})</h2>`;
+
+          const students = dept.getElementsByTagName("student");
+          for (let j = 0; j < students.length; j++) {
+            const s = students[j];
+            const studentId = s.getAttribute("student_id");
+            const name = s.getElementsByTagName("name")[0].textContent;
+            const email = s.getElementsByTagName("email")[0].textContent;
+            const cgpa = s.getElementsByTagName("cgpa")[0].textContent;
+
+            html += `<div class="student">
+                       <div class="student-name">${name}</div>
+                       <div class="student-detail">ID: ${studentId}</div>
+                       <div class="student-detail">Email: ${email}</div>
+                       <div class="student-detail">CGPA: ${cgpa}</div>
+                     </div>`;
+          }
+
+          html += `</div>`;
+        }
+
+        document.getElementById('collegeData').innerHTML = html;
+      })
+      .catch(error => {
+        console.error('Error loading XML:', error);
+        document.getElementById('collegeData').innerHTML =
+          '<p style="color:red;">Error loading XML file. Make sure <b>college.xml</b> is in the same folder!</p>';
+      });
+  </script>
+</body>
+</html>
