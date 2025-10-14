@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html ng-app="attendanceApp">
+<head>
+  <title>Student Attendance Tracker</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body ng-controller="AttendanceController">
+
+  <h2>Student Attendance Tracker</h2>
+
+  <!-- Add Student Form -->
+  <input type="text" ng-model="newStudent.name" placeholder="Enter Name">
+  <input type="text" ng-model="newStudent.roll" placeholder="Enter Roll No">
+  <button ng-click="addStudent()">Add Student</button>
+
+  <hr>
+
+  <!-- Attendance Table -->
+  <table border="1" cellpadding="5">
+    <tr>
+      <th>Roll No</th>
+      <th>Name</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+    <tr ng-repeat="student in students">
+      <td>{{student.roll}}</td>
+      <td>{{student.name}}</td>
+      <td>{{student.status}}</td>
+      <td>
+        <button ng-click="markPresent(student)">Present</button>
+        <button ng-click="markAbsent(student)">Absent</button>
+        <button ng-click="removeStudent($index)">Remove</button>
+      </td>
+    </tr>
+  </table>
+
+  <hr>
+
+  <!-- Filter Views -->
+  <h3>Present Students</h3>
+  <ul>
+    <li ng-repeat="s in students | filter:{status:'Present'}">
+      {{s.name}} ({{s.roll}})
+    </li>
+  </ul>
+
+  <h3>Absent Students</h3>
+  <ul>
+    <li ng-repeat="s in students | filter:{status:'Absent'}">
+      {{s.name}} ({{s.roll}})
+    </li>
+  </ul>
+
+<script>
+  // Create the AngularJS app
+  var app = angular.module('attendanceApp', []);
+
+  // Define a Service to manage attendance data
+  app.service('AttendanceService', function() {
+    var students = [];
+
+    this.getStudents = function() {
+      return students;
+    };
+
+    this.addStudent = function(student) {
+      students.push({
+        name: student.name,
+        roll: student.roll,
+        status: 'Not Marked'
+      });
+    };
+
+    this.removeStudent = function(index) {
+      students.splice(index, 1);
+    };
+  });
+
+  // Define Controller
+  app.controller('AttendanceController', function($scope, AttendanceService) {
+    $scope.students = AttendanceService.getStudents();
+    $scope.newStudent = {};
+
+    $scope.addStudent = function() {
+      if ($scope.newStudent.name && $scope.newStudent.roll) {
+        AttendanceService.addStudent($scope.newStudent);
+        $scope.newStudent = {}; // Clear input fields
+      }
+    };
+
+    $scope.markPresent = function(student) {
+      student.status = 'Present';
+    };
+
+    $scope.markAbsent = function(student) {
+      student.status = 'Absent';
+    };
+
+    $scope.removeStudent = function(index) {
+      AttendanceService.removeStudent(index);
+    };
+  });
+</script>
+</body>
+</html>
