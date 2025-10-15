@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html ng-app="roomApp">
+<head>
+  <title>Simple Room Booking System</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body ng-controller="RoomController">
+
+  <h2>Room Booking System</h2>
+
+  <!-- Add Room -->
+  <input type="text" ng-model="newRoomNo" placeholder="Enter Room Number">
+
+  <select ng-model="newRoomType">
+    <option value="">Select Room Type</option>
+    <option value="AC">AC</option>
+    <option value="Non-AC">Non-AC</option>
+  </select>
+
+  <button ng-click="addRoom()">Add Room</button>
+
+  <hr>
+
+  <!-- Room Table -->
+  <table border="1" cellpadding="5">
+    <tr>
+      <th>Room No</th>
+      <th>Type</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+    <tr ng-repeat="r in rooms">
+      <td>{{r.no}}</td>
+      <td>{{r.type}}</td>
+      <td>{{r.status}}</td>
+      <td>
+        <button ng-click="bookRoom(r)" ng-disabled="r.status==='Booked'">Book</button>
+        <button ng-click="cancelBooking(r)" ng-disabled="r.status==='Available'">Cancel</button>
+        <button ng-click="removeRoom($index)">Remove</button>
+      </td>
+    </tr>
+  </table>
+
+  <hr>
+
+  <!-- Filters -->
+  <h3>Booked Rooms</h3>
+  <ul>
+    <li ng-repeat="r in rooms | filter:{status:'Booked'}">
+      Room {{r.no}} - {{r.type}}
+    </li>
+  </ul>
+
+  <h3>Available Rooms</h3>
+  <ul>
+    <li ng-repeat="r in rooms | filter:{status:'Available'}">
+      Room {{r.no}} - {{r.type}}
+    </li>
+  </ul>
+
+<script>
+  var app = angular.module('roomApp', []);
+
+  app.controller('RoomController', function($scope) {
+    // Initialize empty room list
+    $scope.rooms = [];
+
+    // Add Room
+    $scope.addRoom = function() {
+      if ($scope.newRoomNo && $scope.newRoomType) {
+        $scope.rooms.push({
+          no: $scope.newRoomNo,
+          type: $scope.newRoomType,
+          status: 'Available'
+        });
+        $scope.newRoomNo = '';
+        $scope.newRoomType = '';
+      }
+    };
+
+    // Book Room
+    $scope.bookRoom = function(room) {
+      room.status = 'Booked';
+    };
+
+    // Cancel Booking
+    $scope.cancelBooking = function(room) {
+      room.status = 'Available';
+    };
+
+    // Remove Room
+    $scope.removeRoom = function(index) {
+      $scope.rooms.splice(index, 1);
+    };
+  });
+</script>
+
+</body>
+</html>
